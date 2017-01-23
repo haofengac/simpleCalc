@@ -3,6 +3,55 @@ from plyplus import Grammar
 from fractions import Fraction
 from decimal import Decimal
 
+class operation():
+    def __init__(self, func):
+        self._func = func
+
+class binary_op(operation):
+    def __init__(self, func, part1, part2):
+        self._func = func
+        self._part1 = part1
+        self._part2 = part2
+
+class unary_op(operation):
+    def __init__(self, func, num):
+        self._func = func
+        self._num = num
+
+class atom():
+    def __init__(self):
+        self._trueVal = None
+
+class number(atom):
+    def __init__(num):
+        self._num = num
+        self._trueVal = num
+
+class power(atom):
+    def __init__(base, pow):
+        self._trueVal = base ** pow
+
+class logarithm(atom):
+    def __init__(base, num):
+        self._base = base
+        self._num = num
+        self._trueVal = log(self._num) / log(self._base)
+
+class trig(atom):
+    trig_lib = {
+                'sin': sin,
+                'cos': cos,
+                'tan': tan,
+                'cot': cot,
+                'csc': csc,
+                'sec': sec
+                }
+
+    def __init__(func, num):
+        self._func = trig_lib[ func ]
+        self._num = num
+        self._trueVal = self._func( self._num )
+
 def add(x, y):
     return x + y
 
