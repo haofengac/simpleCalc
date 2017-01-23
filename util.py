@@ -1,25 +1,7 @@
-import re, collections, decimal
+from plyplus import STransformer
+from plyplus import Grammar
 from fractions import Fraction
-
-Token = collections.namedtuple('Token', ['name', 'value'])
-RuleMatch = collections.namedtuple('RuleMatch', ['name', 'matched'])
-token_map = {'+':'ADD', '-':'ADD', '*':'MUL', '/':'MUL', '(':'LPAR', ')':'RPAR'}
-rule_map = {
-    'add' : ['mul ADD add', 'mul'],
-    'mul' : ['atom MUL mul', 'atom'],
-    'atom': ['NUM', 'LPAR add RPAR', 'neg'],
-    'neg' : ['ADD atom'],
-}
-fix_assoc_rules = 'add', 'mul'
-
-class Power():
-    def __init__(self, base, expn):
-        self._base = base
-        self._expn = expn
-        self._trueVal = base ** expn
-
-    def __str__(self):
-        return "(%f ^ %f)" % (base, expn)
+from decimal import Decimal
 
 def add(x, y):
     return x + y
@@ -43,20 +25,14 @@ def pow(base, expn):
 def fractionalize(x):
     if type(x) == Fraction:
         return x
-    zeros = 10 ** ( -decimal.Decimal(str(x)).as_tuple().exponent )
+    zeros = 10 ** ( -Decimal(str(x)).as_tuple().exponent )
     return Fraction(int(x * zeros), int(zeros))
 
-bin_calc_map = {'*':mul, '/':div, '+':add, '-':sub}
+operator_lib = { '+': add, 
+                  '-': sub, 
+                  '*': mul, 
+                  '/': div }
 
-def calc_binary(x):
-    while len(x) > 1:
-        x[:3] = [ bin_calc_map[x[1]](x[0], x[2]) ]
-    return x[0]
+grammar = "start: add;?add: (add add_symbol)? mul;?mul: (mul mul_symbol)? atom;@atom: neg | number | '\(' add '\)';neg: '-' atom;number: '[\d.]+';mul_symbol: '\*' | '/';add_symbol: '\+' | '-';WHITESPACE: '[ \t]+' (%ignore);"
 
-calc_map = {
-    'NUM' : float,
-    'atom': lambda x: x[len(x)!=1],
-    'neg' : lambda (op,num): (num,-num)[op=='-'],
-    'mul' : calc_binary,
-    'add' : calc_binary,
-}
+
